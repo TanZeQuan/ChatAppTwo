@@ -1,17 +1,17 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, FlatList } from 'react-native';
-import { COLORS } from '../styles/colors';
-import { SPACING } from '../styles/spacing';
-import SearchBar from '../components/SearchBar';
-import ChatListItem, { ChatItem } from '../components/ChatListItem';
-import FloatingActionButton from '../components/FloatingActionButton';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
+import ChatListItem, { ChatItem } from '../../components/ChatListItem';
+import FloatingActionButton from '../../components/FloatingActionButton';
+import SearchBar from '../../components/SearchBar';
+import { COLORS } from '../../styles/colors';
+import { SPACING } from '../../styles/spacing';
 
 export default function MessagesScreen() {
   const [q, setQ] = useState('');
 
   const data = useMemo<ChatItem[]>(
     () => [
-      { id: '1', title: 'Sarah Johnson', preview: 'Thanks for the update!', time: '2:44 PM' },
+      { id: '1', title: 'Sarah Johnson', preview: 'Thanks for the update!', time: '2:12 PM' },
       { id: '2', title: 'Product Team', preview: "Let's review the designs", time: '2:44 PM' },
       { id: '3', title: 'Michael Chen', preview: 'Sounds good to me!', time: '2:44 PM' },
       { id: '4', title: 'Design Squad', preview: 'Amazing work everyone!', time: '2:44 PM', unread: 20, isGroup: true },

@@ -1,10 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, FlatList } from 'react-native';
-import { COLORS } from '../styles/colors';
-import { SPACING } from '../styles/spacing';
-import SearchBar from '../components/SearchBar';
-import ContactListItem, { ContactItem } from '../components/ContactListItem';
-import FloatingActionButton from '../components/FloatingActionButton';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
+import ContactListItem, { ContactItem } from '../../components/ContactListItem';
+import FloatingActionButton from '../../components/FloatingActionButton';
+import SearchBar from '../../components/SearchBar';
+import { COLORS } from '../../styles/colors';
+import { SPACING } from '../../styles/spacing';
 
 export default function ContactsScreen() {
   const [q, setQ] = useState('');

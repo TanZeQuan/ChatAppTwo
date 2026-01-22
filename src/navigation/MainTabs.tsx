@@ -1,19 +1,13 @@
-import React from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import MessagesScreen from '../screens/MessageScreen';
-import ContactsScreen from '../screens/ContactScreen';
-import ProfileScreen from '../screens/ProfileScreen';
+import MessagesScreen from '../screens/Chat/MessageList';
+import ContactsScreen from '../screens/Contact/ContactScreen';
+import ProfileScreen from '../screens/Profile/ProfileScreen';
 import { COLORS } from '../styles/colors';
-
-export type MainTabParamList = {
-    Messages: undefined;
-    Contacts: undefined;
-    Profile: undefined;
-};
+import { MainTabParamList } from './types';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 

@@ -1,20 +1,23 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { COLORS } from '../styles/colors';
 import { SPACING } from '../styles/spacing';
 
 type Props = {
   title: string;
   danger?: boolean;
+  onPress?: () => void;
 };
 
-export default function SettingRow({ title, danger }: Props) {
+export default function SettingRow({ title, danger, onPress }: Props) {
   return (
-    <View style={styles.row}>
-      <View style={styles.icon} />
-      <Text style={[styles.text, danger && { color: COLORS.danger }]}>{title}</Text>
-      <Text style={styles.chev}>{'>'}</Text>
-    </View>
+    <TouchableOpacity onPress={onPress} disabled={!onPress}>
+      <View style={styles.row}>
+        <View style={styles.icon} />
+        <Text style={[styles.text, danger && { color: COLORS.danger }]}>{title}</Text>
+        <Text style={styles.chev}>{'>'}</Text>
+      </View>
+    </TouchableOpacity>
   );
 }
 

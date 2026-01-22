@@ -1,10 +1,13 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { COLORS } from '../styles/colors';
-import { SPACING } from '../styles/spacing';
-import SettingRow from '../components/SettingRow';
+import { StyleSheet, Text, View } from 'react-native';
+import SettingRow from '../../components/SettingRow';
+import { COLORS } from '../../styles/colors';
+import { SPACING } from '../../styles/spacing';
+import { useAuth } from '../../context/AuthContext';
 
 export default function ProfileScreen() {
+  const { signOut } = useAuth();
+
   return (
     <View style={styles.screen}>
       <View style={styles.header}>
@@ -30,7 +33,7 @@ export default function ProfileScreen() {
           <SettingRow title="Privacy & Security" />
           <SettingRow title="Appearance" />
           <SettingRow title="Help & Support" />
-          <SettingRow title="Logout" danger />
+          <SettingRow title="Logout" danger onPress={signOut} />
         </View>
 
         <View style={styles.footer}>
