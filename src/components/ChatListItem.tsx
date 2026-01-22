@@ -1,7 +1,10 @@
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { COLORS } from '../styles/colors';
 import { SPACING } from '../styles/spacing';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { ChatStackParamList } from '../navigation/types';
 
 export type ChatItem = {
   id: string;
@@ -13,24 +16,36 @@ export type ChatItem = {
 };
 
 export default function ChatListItem({ item }: { item: ChatItem }) {
+  const navigation = useNavigation<StackNavigationProp<ChatStackParamList>>();
+
+  const onPress = () => {
+    if (item.isGroup) {
+      navigation.navigate('GroupRoom', { chatId: item.id, chatName: item.title, isGroup: true });
+    } else {
+      navigation.navigate('PrivateRoom', { chatId: item.id, chatName: item.title });
+    }
+  };
+
   return (
-    <View style={styles.card}>
-      <View style={styles.avatar} />
-      <View style={{ flex: 1 }}>
-        <View style={styles.row}>
-          <Text style={styles.title} numberOfLines={1}>{item.title}</Text>
-          <Text style={styles.time}>{item.time}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.preview} numberOfLines={1}>{item.preview}</Text>
-          {item.unread ? (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{item.unread}</Text>
-            </View>
-          ) : null}
+    <TouchableOpacity onPress={onPress}>
+      <View style={styles.card}>
+        <View style={styles.avatar} />
+        <View style={{ flex: 1 }}>
+          <View style={styles.row}>
+            <Text style={styles.title} numberOfLines={1}>{item.title}</Text>
+            <Text style={styles.time}>{item.time}</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.preview} numberOfLines={1}>{item.preview}</Text>
+            {item.unread ? (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{item.unread}</Text>
+              </View>
+            ) : null}
+          </View>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 

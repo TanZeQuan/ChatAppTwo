@@ -3,9 +3,9 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import MessagesScreen from '../screens/Chat/MessageList';
-import ContactsScreen from '../screens/Contact/ContactScreen';
-import ProfileScreen from '../screens/Profile/ProfileScreen';
+import MessageListScreen from '../navigation/stacks/ChatStack';
+import ContactsScreen from '../navigation/stacks/ContactStack';
+import ProfileScreen from '../navigation/stacks/ProfileStack';
 import { COLORS } from '../styles/colors';
 import { MainTabParamList } from './types';
 
@@ -19,8 +19,8 @@ export default function MainTabs() {
             screenOptions={({ route }) => ({
                 headerShown: false,
                 tabBarStyle: {
-                    height: 56 + insets.bottom,   // ✅ 自动适配
-                    paddingBottom: insets.bottom, // ✅ iPhone 不会被挡
+                    height: 56 + insets.bottom,
+                    paddingBottom: insets.bottom,
                     paddingTop: 6,
                     backgroundColor: COLORS.primary,
                     borderTopWidth: 0,
@@ -28,18 +28,17 @@ export default function MainTabs() {
                 tabBarActiveTintColor: COLORS.white,
                 tabBarInactiveTintColor: 'rgba(255,255,255,0.6)',
 
-                // ✅ Ionicons 在这里
                 tabBarIcon: ({ color, size, focused }) => {
                     let iconName: keyof typeof Ionicons.glyphMap;
 
                     switch (route.name) {
-                        case 'Messages':
+                        case 'ChatStack': // Use ChatStack as the route name
                             iconName = focused ? 'chatbubble' : 'chatbubble-outline';
                             break;
-                        case 'Contacts':
+                        case 'ContactsStack':
                             iconName = focused ? 'people' : 'people-outline';
                             break;
-                        case 'Profile':
+                        case 'ProfileStack':
                             iconName = focused ? 'person' : 'person-outline';
                             break;
                         default:
@@ -51,17 +50,17 @@ export default function MainTabs() {
             })}
         >
             <Tab.Screen
-                name="Messages"
-                component={MessagesScreen}
+                name="ChatStack"
+                component={MessageListScreen}
                 options={{ title: 'Messages' }}
             />
             <Tab.Screen
-                name="Contacts"
+                name="ContactsStack"
                 component={ContactsScreen}
                 options={{ title: 'Contacts' }}
             />
             <Tab.Screen
-                name="Profile"
+                name="ProfileStack"
                 component={ProfileScreen}
                 options={{ title: 'Profile' }}
             />
