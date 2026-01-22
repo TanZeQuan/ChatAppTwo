@@ -9,6 +9,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Alert,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useNavigation, useRoute, useFocusEffect } from "@react-navigation/native";
@@ -37,6 +38,8 @@ export default function GroupRoomScreen() {
   const insets = useSafeAreaInsets();
 
   const { title, membersCount } = route.params ?? { title: "Project Team", membersCount: 5 };
+
+  const [menuVisible, setMenuVisible] = useState(false);
 
   const [input, setInput] = useState("");
   const listRef = useRef<FlatList<GroupMessage>>(null);
@@ -89,11 +92,42 @@ export default function GroupRoomScreen() {
     requestAnimationFrame(() => listRef.current?.scrollToEnd({ animated: true }));
   };
 
+  // ✅ menu actions
+  const onPressSearchHistory = () => {
+    setMenuVisible(false);
+    Alert.alert("Search History", "TODO: open search history screen");
+  };
+
+  const onPressGroupInfo = () => {
+    setMenuVisible(false);
+    Alert.alert("Group Info", "TODO: navigate to GroupSetting / GroupInfo");
+    // example:
+    // navigation.navigate('GroupSettingScreen', { chatId: route.params.roomId, chatName: title })
+  };
+
+  const onPressPinGroup = () => {
+    setMenuVisible(false);
+    Alert.alert("Pin Group", "TODO: pin group logic");
+  };
+
+  const onPressMuteGroup = () => {
+    setMenuVisible(false);
+    Alert.alert("Mute Group", "TODO: mute group logic");
+  };
+
+  const onPressLeaveGroup = () => {
+    setMenuVisible(false);
+    Alert.alert("Leave Group", "Are you sure you want to leave this group?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Leave", style: "destructive", onPress: () => Alert.alert("Left", "TODO: call API to leave group") },
+    ]);
+  };
+
   return (
     /**
      * ✅ IMPORTANT:
-     * edges={[]} so background covers the whole screen (no extra bottom push)
-     * inputBar uses insets.bottom to avoid home indicator and still cover to bottom
+     * edges={[]} so background covers the whole screen
+     * inputBar uses insets.bottom to avoid home indicator
      */
     <SafeAreaView style={styles.safe} edges={[]}>
       {/* Header */}
@@ -107,15 +141,29 @@ export default function GroupRoomScreen() {
             <Ionicons name="people" size={18} color="#2563EB" />
           </View>
           <View style={{ flex: 1 }}>
-            <Text numberOfLines={1} style={styles.headerTitle}>{title}</Text>
+            <Text numberOfLines={1} style={styles.headerTitle}>
+              {title}
+            </Text>
             <Text style={styles.headerSubtitle}>{membersCount ?? 0} members</Text>
           </View>
         </View>
 
-        <TouchableOpacity onPress={() => {}} style={styles.headerIconBtn}>
+        <TouchableOpacity onPress={() => setMenuVisible(true)} style={styles.headerIconBtn}>
           <Ionicons name="ellipsis-vertical" size={20} color="#fff" />
         </TouchableOpacity>
       </View>
+
+      {/* ✅ Menu like your screenshot */}
+      <GroupHeaderMenu
+        visible={menuVisible}
+        top={insets.top + 58}
+        onClose={() => setMenuVisible(false)}
+        onSearchHistory={onPressSearchHistory}
+        onGroupInfo={onPressGroupInfo}
+        onPinGroup={onPressPinGroup}
+        onMuteGroup={onPressMuteGroup}
+        onLeaveGroup={onPressLeaveGroup}
+      />
 
       {/* Chat */}
       <View style={styles.body}>
@@ -166,6 +214,62 @@ export default function GroupRoomScreen() {
   );
 }
 
+function GroupHeaderMenu({
+  visible,
+  top,
+  onClose,
+  onSearchHistory,
+  onGroupInfo,
+  onPinGroup,
+  onMuteGroup,
+  onLeaveGroup,
+}: {
+  visible: boolean;
+  top: number;
+  onClose: () => void;
+  onSearchHistory: () => void;
+  onGroupInfo: () => void;
+  onPinGroup: () => void;
+  onMuteGroup: () => void;
+  onLeaveGroup: () => void;
+}) {
+  if (!visible) return null;
+
+  return (
+    <View style={menuStyles.overlay} pointerEvents="box-none">
+      <TouchableOpacity style={menuStyles.backdrop} activeOpacity={1} onPress={onClose} />
+
+      <View style={[menuStyles.menuCard, { top }]}>
+        <MenuItem icon="search" label="Search History" onPress={onSearchHistory} />
+        <MenuItem icon="people-outline" label="Group Info" onPress={onGroupInfo} />
+        <MenuItem icon="bookmark-outline" label="Pin Group" onPress={onPinGroup} />
+        <MenuItem icon="volume-mute-outline" label="Mute Group" onPress={onMuteGroup} />
+        <View style={menuStyles.divider} />
+        <MenuItem icon="log-out-outline" label="Leave Group" danger onPress={onLeaveGroup} />
+      </View>
+    </View>
+  );
+}
+
+function MenuItem({
+  icon,
+  label,
+  onPress,
+  danger,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  onPress: () => void;
+  danger?: boolean;
+}) {
+  return (
+    <TouchableOpacity style={menuStyles.item} onPress={onPress} activeOpacity={0.85}>
+      <Ionicons name={icon} size={18} color={danger ? "#EF4444" : "#111827"} style={{ width: 22 }} />
+      <Text style={[menuStyles.itemText, danger && { color: "#EF4444" }]}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
+
 function DayChip({ label }: { label: string }) {
   return (
     <View style={styles.dayChipWrap}>
@@ -191,9 +295,7 @@ function GroupMessageRow({ message }: { message: GroupMessage }) {
       ) : null}
 
       <View style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleOther]}>
-        <Text style={[styles.msgText, isMe ? styles.msgTextMe : styles.msgTextOther]}>
-          {message.text}
-        </Text>
+        <Text style={[styles.msgText, isMe ? styles.msgTextMe : styles.msgTextOther]}>{message.text}</Text>
       </View>
 
       <Text style={[styles.timeText, isMe ? styles.timeRight : styles.timeLeft]}>{message.time}</Text>
@@ -302,5 +404,50 @@ const styles = StyleSheet.create({
     backgroundColor: "#2563EB",
     alignItems: "center",
     justifyContent: "center",
+  },
+});
+
+const menuStyles = StyleSheet.create({
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 999,
+    elevation: 20,
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "transparent",
+  },
+  menuCard: {
+    position: "absolute",
+    right: 12,
+    width: 220,
+    borderRadius: 14,
+    backgroundColor: "#FFFFFF",
+    paddingVertical: 8,
+
+    shadowColor: "#000",
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+
+    elevation: 10,
+  },
+  item: {
+    height: 46,
+    paddingHorizontal: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  itemText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#111827",
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#E5E7EB",
+    marginVertical: 6,
+    marginHorizontal: 10,
   },
 });

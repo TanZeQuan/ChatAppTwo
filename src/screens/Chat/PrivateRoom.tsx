@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
   Image,
+  Alert,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
@@ -17,7 +18,7 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { COLORS } from "@/src/styles/colors";
 
-// ✅ Replace this with your real ChatStackParamList if you have it
+// ✅ Replace with your real ChatStackParamList if you have it
 type RootStackParamList = {
   PrivateRoom: { roomId: string; title: string; avatar?: string; online?: boolean };
 };
@@ -66,6 +67,7 @@ export default function PrivateRoomScreen() {
     }, [navigation, tabBarStyle])
   );
 
+  const [menuVisible, setMenuVisible] = useState(false);
   const [input, setInput] = useState("");
 
   const [messages, setMessages] = useState<Message[]>([
@@ -96,13 +98,31 @@ export default function PrivateRoomScreen() {
 
     requestAnimationFrame(() => listRef.current?.scrollToEnd({ animated: true }));
   };
+  
+  const onPressSearch = () => {
+    setMenuVisible(false);
+    Alert.alert("Search Chat", "TODO: navigate to Search screen");
+  };
+
+  const onPressPin = () => {
+    setMenuVisible(false);
+    Alert.alert("Pin Chat", "TODO: pin logic");
+  };
+
+  const onPressMute = () => {
+    setMenuVisible(false);
+    Alert.alert("Mute Chat", "TODO: mute logic");
+  };
+
+  const onPressClear = () => {
+    setMenuVisible(false);
+    Alert.alert("Clear Chat", "Are you sure you want to clear this chat?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Clear", style: "destructive", onPress: () => setMessages([]) },
+    ]);
+  };
 
   return (
-    /**
-     * ✅ IMPORTANT:
-     * - edges={[]} => background covers whole screen (no extra bottom push)
-     * - inputBar uses insets.bottom to avoid home indicator
-     */
     <SafeAreaView style={styles.safe} edges={[]}>
       {/* Header (covers status bar) */}
       <View style={[styles.header, { height: 84 + insets.top, paddingTop: insets.top }]}>
@@ -129,10 +149,21 @@ export default function PrivateRoomScreen() {
           </View>
         </View>
 
-        <TouchableOpacity onPress={() => {}} style={styles.headerIconBtn}>
+        <TouchableOpacity onPress={() => setMenuVisible(true)} style={styles.headerIconBtn}>
           <Ionicons name="ellipsis-vertical" size={20} color="#fff" />
         </TouchableOpacity>
       </View>
+
+      {/* ✅ Popover Menu */}
+      <HeaderMenu
+        visible={menuVisible}
+        top={insets.top + 58} // position below status/header area
+        onClose={() => setMenuVisible(false)}
+        onSearch={onPressSearch}
+        onPin={onPressPin}
+        onMute={onPressMute}
+        onClear={onPressClear}
+      />
 
       {/* Chat */}
       <View style={styles.body}>
@@ -142,12 +173,9 @@ export default function PrivateRoomScreen() {
           keyExtractor={(m) => m.id}
           contentContainerStyle={[
             styles.listContent,
-            // ✅ ensure list never gets covered by input bar + safe area
-            { paddingBottom: 12 + 72 + insets.bottom },
+            { paddingBottom: 72 + insets.bottom }, // ✅ not covered by input bar
           ]}
-          renderItem={({ item }) => (
-            <MessageRow message={item} showAvatar={item.sender === "other"} />
-          )}
+          renderItem={({ item }) => <MessageRow message={item} showAvatar={item.sender === "other"} />}
           ListHeaderComponent={<DayChip label="Today" />}
           onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: false })}
         />
@@ -185,6 +213,58 @@ export default function PrivateRoomScreen() {
   );
 }
 
+function HeaderMenu({
+  visible,
+  top,
+  onClose,
+  onSearch,
+  onPin,
+  onMute,
+  onClear,
+}: {
+  visible: boolean;
+  top: number;
+  onClose: () => void;
+  onSearch: () => void;
+  onPin: () => void;
+  onMute: () => void;
+  onClear: () => void;
+}) {
+  if (!visible) return null;
+
+  return (
+    <View style={menuStyles.overlay} pointerEvents="box-none">
+      <TouchableOpacity style={menuStyles.backdrop} activeOpacity={1} onPress={onClose} />
+      <View style={[menuStyles.menuCard, { top }]}>
+        <MenuItem icon="search" label="Search Chat" onPress={onSearch} />
+        <MenuItem icon="bookmark-outline" label="Pin Chat" onPress={onPin} />
+        <MenuItem icon="volume-mute-outline" label="Mute Chat" onPress={onMute} />
+        <View style={menuStyles.divider} />
+        <MenuItem icon="trash-outline" label="Clear Chat" danger onPress={onClear} />
+      </View>
+    </View>
+  );
+}
+
+function MenuItem({
+  icon,
+  label,
+  onPress,
+  danger,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  onPress: () => void;
+  danger?: boolean;
+}) {
+  return (
+    <TouchableOpacity style={menuStyles.item} onPress={onPress} activeOpacity={0.85}>
+      <Ionicons name={icon} size={18} color={danger ? "#EF4444" : "#111827"} style={{ width: 22 }} />
+      <Text style={[menuStyles.itemText, danger && { color: "#EF4444" }]}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
+
 function DayChip({ label }: { label: string }) {
   return (
     <View style={styles.dayChipWrap}>
@@ -208,9 +288,7 @@ function MessageRow({ message, showAvatar }: { message: Message; showAvatar: boo
       )}
 
       <View style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleOther]}>
-        <Text style={[styles.msgText, isMe ? styles.msgTextMe : styles.msgTextOther]}>
-          {message.text}
-        </Text>
+        <Text style={[styles.msgText, isMe ? styles.msgTextMe : styles.msgTextOther]}>{message.text}</Text>
       </View>
 
       <Text style={[styles.timeText, isMe ? styles.timeRight : styles.timeLeft]}>{message.time}</Text>
@@ -319,5 +397,50 @@ const styles = StyleSheet.create({
     backgroundColor: "#2563EB",
     alignItems: "center",
     justifyContent: "center",
+  },
+});
+
+const menuStyles = StyleSheet.create({
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 999,
+    elevation: 20,
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "transparent",
+  },
+  menuCard: {
+    position: "absolute",
+    right: 12,
+    width: 210,
+    borderRadius: 14,
+    backgroundColor: "#FFFFFF",
+    paddingVertical: 8,
+
+    shadowColor: "#000",
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+
+    elevation: 10,
+  },
+  item: {
+    height: 46,
+    paddingHorizontal: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  itemText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#111827",
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#E5E7EB",
+    marginVertical: 6,
+    marginHorizontal: 10,
   },
 });
