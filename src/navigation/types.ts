@@ -54,6 +54,7 @@ export type ChatStackParamList = {
     chatId: string;
     chatName: string;
   };
+  AddChat: undefined;
 };
 
 export type ContactsStackParamList = {

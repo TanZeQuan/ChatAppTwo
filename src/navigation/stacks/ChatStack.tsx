@@ -5,6 +5,7 @@ import { ChatStackParamList } from "../types";
 import MessageListScreen from "../../screens/Chat/MessageList";
 import PrivateRoom from "../../screens/Chat/PrivateRoom";
 import GroupRoomScreen from "../../screens/Chat/GroupRoom";
+import AddChat from "../../screens/Chat/AddChat";
 
 const Stack = createNativeStackNavigator<ChatStackParamList>();
 
@@ -44,6 +45,14 @@ export default function ChatStack() {
         component={GroupRoomScreen}
         options={{ 
           title: "Group Room",
+          animation: 'slide_from_right',
+        }}
+      />
+       <Stack.Screen
+        name="AddChat"
+        component={AddChat}
+        options={{ 
+          title: "Add Chat",
           animation: 'slide_from_right',
         }}
       />

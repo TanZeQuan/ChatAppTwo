@@ -1,12 +1,15 @@
 import React, { useMemo, useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import ChatListItem, { ChatItem } from '../../components/ChatListItem';
 import FloatingActionButton from '../../components/FloatingActionButton';
 import SearchBar from '../../components/SearchBar';
 import { COLORS } from '../../styles/colors';
 import { SPACING } from '../../styles/spacing';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function MessagesScreen() {
+  const navigation = useNavigation();
   const [q, setQ] = useState('');
 
   const data = useMemo<ChatItem[]>(
@@ -43,7 +46,9 @@ export default function MessagesScreen() {
         />
       </View>
 
-      <FloatingActionButton onPress={() => {}} label="+" />
+       <FloatingActionButton onPress={() => navigation.navigate('AddChat' as never)}>
+        <Ionicons name="add-outline" size={28} color="#fff" />
+      </FloatingActionButton>
     </View>
   );
 }

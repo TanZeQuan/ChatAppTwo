@@ -1,5 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+
 import ContactListItem, { ContactItem } from '../../components/ContactListItem';
 import FloatingActionButton from '../../components/FloatingActionButton';
 import SearchBar from '../../components/SearchBar';
@@ -22,34 +24,45 @@ export default function ContactsScreen() {
     []
   );
 
-  const filtered = useMemo(
-    () => data.filter(x => (x.name + x.title + x.dept).toLowerCase().includes(q.toLowerCase())),
-    [data, q]
-  );
+  const filtered = useMemo(() => {
+    const qq = q.trim().toLowerCase();
+    if (!qq) return data;
+    return data.filter((x) =>
+      `${x.name} ${x.title} ${x.dept}`.toLowerCase().includes(qq)
+    );
+  }, [data, q]);
 
   return (
     <View style={styles.screen}>
+      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Contacts</Text>
       </View>
 
+      {/* Body */}
       <View style={styles.body}>
         <SearchBar value={q} onChangeText={setQ} />
         <FlatList
-          contentContainerStyle={{ paddingTop: 12, paddingBottom: 140, gap: 12 }}
+          contentContainerStyle={styles.listContent}
           data={filtered}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <ContactListItem item={item} />}
         />
       </View>
 
-      <FloatingActionButton onPress={() => {}} label="+" />
+      {/* Floating Button */}
+      <FloatingActionButton onPress={() => {}}>
+        <Ionicons name="person-add-outline" size={28} color="#fff" />
+      </FloatingActionButton>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: COLORS.bg },
+  screen: {
+    flex: 1,
+    backgroundColor: COLORS.bg,
+  },
   header: {
     height: 84,
     backgroundColor: COLORS.primary,
@@ -57,6 +70,18 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     paddingBottom: 14,
   },
-  headerTitle: { color: COLORS.white, fontSize: 18, fontWeight: '800' },
-  body: { flex: 1, padding: SPACING.screenPadding },
+  headerTitle: {
+    color: COLORS.white,
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  body: {
+    flex: 1,
+    padding: SPACING.screenPadding,
+  },
+  listContent: {
+    paddingTop: 12,
+    paddingBottom: 140,
+    gap: 12,
+  },
 });
