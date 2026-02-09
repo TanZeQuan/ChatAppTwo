@@ -52,17 +52,17 @@ export default function MainTabs() {
             <Tab.Screen
                 name="ChatStack"
                 component={MessageListScreen}
-                options={{ title: 'Messages' }}
+                options={{ title: '聊天' }}
             />
             <Tab.Screen
                 name="ContactsStack"
                 component={ContactsScreen}
-                options={{ title: 'Contacts' }}
+                options={{ title: '通讯录' }}
             />
             <Tab.Screen
                 name="ProfileStack"
                 component={ProfileScreen}
-                options={{ title: 'Profile' }}
+                options={{ title: '我的' }}
             />
         </Tab.Navigator>
     );

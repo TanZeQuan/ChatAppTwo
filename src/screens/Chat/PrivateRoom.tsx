@@ -1,5 +1,5 @@
 // src/screens/chat/PrivateRoomScreen.tsx
-import React, { useMemo, useRef, useState, useCallback } from "react";
+import React, { useMemo, useRef, useState, useCallback, useEffect } from "react";
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -11,12 +11,30 @@ import {
   View,
   Image,
   Alert,
+  Keyboard,
+  ScrollView,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { COLORS } from "@/src/styles/colors";
+
+// --- Mock Data for New Features ---
+const ATTACHMENT_ITEMS = [
+  { id: '1', label: 'Photo', icon: 'image', color: '#E3F2FD', iconColor: '#4285F4' },
+  { id: '2', label: 'Video', icon: 'videocam', color: '#FFF3E0', iconColor: '#FB8C00' },
+  { id: '3', label: 'Voice call', icon: 'call', color: '#FCE4EC', iconColor: '#F06292' },
+  { id: '4', label: 'File', icon: 'document-text', color: '#E8F5E9', iconColor: '#43A047' },
+  { id: '5', label: 'Contact', icon: 'person', color: '#EDE7F6', iconColor: '#7E57C2' },
+];
+
+const EMOJI_LIST = [
+  "😀", "😃", "😄", "😁", "😆", "😅", "🤣", "😂",
+  "🙂", "🙃", "😉", "😊", "😇", "🥰", "😍", "🤩",
+  "😘", "😗", "☺", "😚", "😙", "🥲", "😋", "😛",
+  "😜", "🤪", "😝", "🤑", "🤗", "🤭", "🤫", "🤔",
+];
 
 // ✅ Replace with your real ChatStackParamList if you have it
 type RootStackParamList = {
@@ -58,10 +76,8 @@ export default function PrivateRoomScreen() {
   useFocusEffect(
     useCallback(() => {
       const parent = navigation.getParent();
-
       // ✅ hide bottom tabs in room
       parent?.setOptions({ tabBarStyle: { display: "none" } });
-
       // ✅ restore when leaving
       return () => parent?.setOptions({ tabBarStyle });
     }, [navigation, tabBarStyle])
@@ -69,6 +85,9 @@ export default function PrivateRoomScreen() {
 
   const [menuVisible, setMenuVisible] = useState(false);
   const [input, setInput] = useState("");
+  
+  // ✅ New State for Footer Panels
+  const [activeFooter, setActiveFooter] = useState<'none' | 'attachments' | 'emojis'>('none');
 
   const [messages, setMessages] = useState<Message[]>([
     { id: "1", text: "Hey! How's the new project?", sender: "other", time: "10:30 AM" },
@@ -81,6 +100,12 @@ export default function PrivateRoomScreen() {
 
   const listRef = useRef<FlatList<Message>>(null);
   const headerSubtitle = useMemo(() => (online ? "online" : "offline"), [online]);
+
+  // ✅ Listen for keyboard appearance to close custom footers
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', () => setActiveFooter('none'));
+    return () => showSub.remove();
+  }, []);
 
   const onSend = () => {
     const text = input.trim();
@@ -95,10 +120,35 @@ export default function PrivateRoomScreen() {
 
     setMessages((prev) => [...prev, newMsg]);
     setInput("");
+    setActiveFooter('none'); // Close panels on send
 
     requestAnimationFrame(() => listRef.current?.scrollToEnd({ animated: true }));
   };
   
+  // ✅ Toggle Logic
+  const toggleAttachments = () => {
+    if (activeFooter === 'attachments') {
+      setActiveFooter('none');
+    } else {
+      Keyboard.dismiss();
+      setActiveFooter('attachments');
+    }
+  };
+
+  const toggleEmojis = () => {
+    if (activeFooter === 'emojis') {
+      setActiveFooter('none');
+    } else {
+      Keyboard.dismiss();
+      setActiveFooter('emojis');
+    }
+  };
+
+  const addEmoji = (emoji: string) => {
+    setInput((prev) => prev + emoji);
+  };
+
+  // Menu Handlers
   const onPressSearch = () => {
     setMenuVisible(false);
     Alert.alert("Search Chat", "TODO: navigate to Search screen");
@@ -173,7 +223,7 @@ export default function PrivateRoomScreen() {
           keyExtractor={(m) => m.id}
           contentContainerStyle={[
             styles.listContent,
-            { paddingBottom: 72 + insets.bottom }, // ✅ not covered by input bar
+            { paddingBottom: 20 }, // Adjusted padding since footer is outside
           ]}
           renderItem={({ item }) => <MessageRow message={item} showAvatar={item.sender === "other"} />}
           ListHeaderComponent={<DayChip label="Today" />}
@@ -181,11 +231,20 @@ export default function PrivateRoomScreen() {
         />
       </View>
 
-      {/* Input */}
+      {/* Input Section with Footer */}
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
-        <View style={[styles.inputBar, { paddingBottom: insets.bottom + 10 }]}>
-          <TouchableOpacity style={styles.smallIconBtn} onPress={() => {}}>
-            <Ionicons name="attach" size={20} color="#6B7280" />
+        
+        {/* Input Bar */}
+        <View style={[
+            styles.inputBar, 
+            { paddingBottom: activeFooter !== 'none' ? 10 : insets.bottom + 10 }
+        ]}>
+          <TouchableOpacity style={styles.smallIconBtn} onPress={toggleAttachments}>
+            <Ionicons 
+              name="attach" 
+              size={20} 
+              color={activeFooter === 'attachments' ? COLORS.primary : "#6B7280"} 
+            />
           </TouchableOpacity>
 
           <View style={styles.inputWrap}>
@@ -200,19 +259,63 @@ export default function PrivateRoomScreen() {
             />
           </View>
 
-          <TouchableOpacity style={styles.smallIconBtn} onPress={() => {}}>
-            <Ionicons name="happy-outline" size={20} color="#6B7280" />
+          <TouchableOpacity style={styles.smallIconBtn} onPress={toggleEmojis}>
+            <Ionicons 
+              name={activeFooter === 'emojis' ? "happy" : "happy-outline"} 
+              size={20} 
+              color={activeFooter === 'emojis' ? COLORS.primary : "#6B7280"} 
+            />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.sendBtn} onPress={onSend} activeOpacity={0.85}>
             <Ionicons name="send" size={18} color="#fff" />
           </TouchableOpacity>
         </View>
+
+        {/* ✅ Custom Footer Panels */}
+        {activeFooter !== 'none' && (
+          <View style={[styles.footerPanel, { paddingBottom: insets.bottom + 10 }]}>
+            
+            {/* Attachment Grid */}
+            {activeFooter === 'attachments' && (
+              <View style={styles.attachmentGrid}>
+                {ATTACHMENT_ITEMS.map((item) => (
+                  <TouchableOpacity key={item.id} style={styles.attachItem} onPress={() => Alert.alert("Sent", item.label)}>
+                    <View style={[styles.attachIconBg, { backgroundColor: item.color }]}>
+                      <Ionicons name={item.icon as any} size={24} color={item.iconColor} />
+                    </View>
+                    <Text style={styles.attachLabel}>{item.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+
+            {/* Emoji Grid */}
+            {activeFooter === 'emojis' && (
+              <View style={{ flex: 1 }}>
+                <View style={styles.emojiHeader}>
+                  <Text style={styles.emojiTitle}>Select Emoji</Text>
+                  <TouchableOpacity onPress={() => setActiveFooter('none')}>
+                    <Ionicons name="close" size={20} color="#6B7280" />
+                  </TouchableOpacity>
+                </View>
+                <ScrollView contentContainerStyle={styles.emojiGrid}>
+                  {EMOJI_LIST.map((e, i) => (
+                    <TouchableOpacity key={i} onPress={() => addEmoji(e)} style={styles.emojiItem}>
+                      <Text style={{ fontSize: 26 }}>{e}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+          </View>
+        )}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
+// ... HeaderMenu, MenuItem, DayChip, MessageRow components remain exactly the same ...
 function HeaderMenu({
   visible,
   top,
@@ -397,6 +500,68 @@ const styles = StyleSheet.create({
     backgroundColor: "#2563EB",
     alignItems: "center",
     justifyContent: "center",
+  },
+
+  // ✅ New Styles for Footer Panels
+  footerPanel: {
+    backgroundColor: "#fff",
+    height: 280, // Fixed height for panel
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 10,
+    overflow: "hidden",
+  },
+  
+  // Attachments
+  attachmentGrid: {
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    padding: 24,
+    justifyContent: 'space-between',
+  },
+  attachItem: {
+    width: '22%', 
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  attachIconBg: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  attachLabel: {
+    fontSize: 12,
+    color: '#64748B',
+    textAlign: 'center'
+  },
+
+  // Emojis
+  emojiHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  emojiTitle: { fontSize: 14, fontWeight: '600', color: '#64748B' },
+  emojiGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    padding: 10,
+  },
+  emojiItem: {
+    width: '12.5%', 
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 
